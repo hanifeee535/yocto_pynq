@@ -1,33 +1,39 @@
 /******************************************************************************
- *
- *   Copyright (C) 2011  Intel Corporation. All rights reserved.
- *
- *   This program is free software;  you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; version 2 of the License.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY;  without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
- *   the GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program;  if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+Author: 
+Soyabbir Abu Hanif 
+  
+custom loadable karnel module (LKM) that will
+include metadata for version, authors (both members of the group should be separately reported), license, and description
+greets when loading and when unloading
+supports a load-time parameter to personalize the default greetings
  *
  *****************************************************************************/
 
-#include <linux/module.h>
 
-int init_module(void)
-{
-	printk("Hello World!\n");
-	return 0;
+
+#include <linux/module.h> //loading lkm into thekarnel
+#include <linux/kernel.h> // for types, macros, functions for karnel
+#include <linux/init.h> //  module initialization and cleanup macros
+
+MODULE_LICENSE("GPL_v2");
+MODULE_AUTHOR("Soyabbir Abu Hanif");
+
+MODULE_DESCRIPTION("A simple kernel module that greets on load and unload with a personalized message");
+MODULE_VERSION("0.1");
+
+static char *name = "Hello World";
+module_param(name, charp, 0444); // 0444 is the permission value for read-only
+MODULE_PARM_DESC(name, "The name to display in /var/log/kern.log");
+
+static int __init hello_init(void) {
+    printk(KERN_INFO "Hello: Welcome %s to the Hello LKM\n", name);
+    return 0;
 }
 
-void cleanup_module(void)
-{
-	printk("Goodbye Cruel World!\n");
+static void __exit hello_exit(void) {
+    printk(KERN_INFO "Goodbye %s from the Hello LKM\n", name);
 }
 
-MODULE_LICENSE("GPL");
+module_init(hello_init);
+module_exit(hello_exit);
+
